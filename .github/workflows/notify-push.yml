@@ -1,0 +1,32 @@
+name: Notificación por correo al hacer push
+
+on:
+  push:
+    branches:
+      - main
+      - feature_a
+      - feature_b
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener nombre de la rama
+        id: branch
+        run: echo "name=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar correo de notificación
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Cambios subidos a rama ${{ steps.branch.outputs.name }}"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_USERNAME }}
+          body: |
+            Se subieron cambios al repositorio.
+            Rama: ${{ steps.branch.outputs.name }}
+            Autor: ${{ github.actor }}
+            Mensaje: ${{ github.event.head_commit.message }}
